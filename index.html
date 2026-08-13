@@ -1,135 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IPO Index</title>
-  <!-- Favicon: folder emoji as SVG data URI -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📂</text></svg>" />
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <style>
-    /* Custom styles */
-    body {
-      background: linear-gradient(145deg, #f0f4ff 0%, #e6edf7 100%);
-      min-height: 100vh;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-    .glass-header {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    }
-    .card {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      transition: all 0.25s ease;
-    }
-    .card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
-      background: white;
-      border-color: #60a5fa;
-    }
-    .card a {
-      transition: color 0.2s;
-    }
-    .breadcrumb-link {
-      transition: color 0.2s;
-    }
-    .breadcrumb-link:hover {
-      color: #2563eb;
-    }
-    #search-input {
-      transition: all 0.3s;
-    }
-    #search-input:focus {
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
-      border-color: #3b82f6;
-    }
-    .file-icon {
-      font-size: 1.5rem;
-      width: 2.2rem;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .empty-state {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(4px);
-    }
-    /* Hide search results when no items match */
-    .hidden-item {
-      display: none !important;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IPO Index · Protected</title>
+    <!-- Favicon: folder emoji as SVG data URI -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📂</text></svg>" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ── base ── */
+        body {
+            background: linear-gradient(145deg, #f0f4ff 0%, #e6edf7 100%);
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.25s ease;
+        }
+        .card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
+            background: white;
+            border-color: #60a5fa;
+        }
+        .card a {
+            transition: color 0.2s;
+        }
+
+        #search-input:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+            border-color: #3b82f6;
+        }
+
+        .file-icon {
+            font-size: 1.5rem;
+            width: 2.2rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .hidden-item {
+            display: none !important;
+        }
+
+        /* ── password overlay ── */
+        #password-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 20, 40, 0.6);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+        #password-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .password-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem 2rem 2rem;
+            border-radius: 2rem;
+            text-align: center;
+            transform: translateY(0);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #password-overlay.hidden .password-box {
+            transform: translateY(30px) scale(0.96);
+        }
+
+        .password-box .lock-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.4);
+            margin-bottom: 1rem;
+        }
+
+        .password-box h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0b1a33;
+            margin-bottom: 0.25rem;
+        }
+        .password-box p {
+            color: #5b6f8c;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-box .input-group {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+        .password-box .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+        .password-box .input-group input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
+            border-radius: 1rem;
+            border: 1.5px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .password-box .input-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+            background: white;
+        }
+
+        .password-box .submit-btn {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .password-box .submit-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 28px -8px rgba(37, 99, 235, 0.5);
+        }
+        .password-box .submit-btn:active {
+            transform: scale(0.97);
+        }
+
+        .password-box .error-msg {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            min-height: 1.5rem;
+            transition: opacity 0.2s;
+        }
+
+        .password-box .hint {
+            margin-top: 1.2rem;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: 0.3px;
+        }
+        .password-box .hint code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* tiny responsive tweaks */
+        @media (max-width: 480px) {
+            .password-box {
+                padding: 2rem 1.25rem 1.5rem;
+                margin: 0 1rem;
+            }
+            .password-box .lock-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="app" class="max-w-7xl mx-auto px-4 py-6 md:py-10">
 
-    <!-- Header with glass effect -->
-    <header class="glass-header rounded-2xl p-5 md:p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-600 text-white p-3 rounded-xl shadow-lg shadow-blue-200">
-          <i class="fas fa-folder-open text-2xl"></i>
+    <!-- ─── PASSWORD OVERLAY ─── -->
+    <div id="password-overlay">
+        <div class="password-box">
+            <div class="lock-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Protected Folder</h2>
+            <p>Enter the password to browse <span class="font-medium text-blue-600">IPO Index</span></p>
+
+            <div class="input-group">
+                <i class="fas fa-key"></i>
+                <input id="password-input" type="password" placeholder="Enter password…" autofocus />
+            </div>
+
+            <button id="unlock-btn" class="submit-btn">
+                <i class="fas fa-arrow-right"></i> Unlock
+            </button>
+
+            <div id="password-error" class="error-msg"></div>
+
+            <div class="hint">
+                <i class="fas fa-info-circle mr-1"></i> Default: <code>admin123</code>
+            </div>
         </div>
-        <div>
-          <h1 id="title" class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
-            <span>Loading...</span>
-          </h1>
-          <p class="text-sm text-gray-500 mt-0.5">
-            <i class="fas fa-code-branch mr-1"></i> 
-            <span id="repo-badge" class="font-mono bg-gray-200 px-2 py-0.5 rounded text-xs">zaineb44-ui/ipoindex</span>
-          </p>
+    </div>
+
+    <!-- ─── MAIN APP ─── -->
+    <div id="app" class="max-w-7xl mx-auto px-4 py-6 md:py-10">
+
+        <!-- Header -->
+        <header class="glass-header rounded-2xl p-5 md:p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-3 rounded-xl shadow-lg shadow-blue-200">
+                    <i class="fas fa-folder-open text-2xl"></i>
+                </div>
+                <div>
+                    <h1 id="title" class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
+                        <span>Loading…</span>
+                    </h1>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        <i class="fas fa-code-branch mr-1"></i>
+                        <span id="repo-badge" class="font-mono bg-gray-200 px-2 py-0.5 rounded text-xs">zaineb44-ui/ipoindex</span>
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input id="search-input" type="text" placeholder="Search files…"
+                    class="pl-9 pr-4 py-2 rounded-xl border border-gray-300 bg-white/80 focus:bg-white text-sm w-48 md:w-56 transition shadow-sm" />
+                </div>
+                <a id="repo-link" href="#" target="_blank"
+                class="inline-flex items-center gap-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm px-4 py-2 rounded-xl transition shadow-md hover:shadow-lg">
+                <i class="fab fa-github"></i> View Repo
+            </a>
         </div>
-      </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <!-- Search input -->
-        <div class="relative">
-          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-          <input id="search-input" type="text" placeholder="Search files..." 
-                 class="pl-9 pr-4 py-2 rounded-xl border border-gray-300 bg-white/80 focus:bg-white text-sm w-48 md:w-56 transition shadow-sm" />
-        </div>
-        <a id="repo-link" href="#" target="_blank" 
-           class="inline-flex items-center gap-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm px-4 py-2 rounded-xl transition shadow-md hover:shadow-lg">
-          <i class="fab fa-github"></i> View Repo
-        </a>
-      </div>
     </header>
 
     <!-- Breadcrumbs -->
     <nav id="breadcrumbs" class="text-sm text-gray-600 mb-6 bg-white/70 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-white/50">
-      <a href="/" class="hover:text-blue-600 transition">Home</a>
+        <a href="/" class="hover:text-blue-600 transition">Home</a>
     </nav>
 
     <!-- File/folder grid -->
     <div id="content" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <!-- Items will be injected here -->
+        <!-- injected -->
     </div>
 
-    <!-- Footer (optional) -->
+    <!-- Footer -->
     <footer class="mt-12 text-center text-xs text-gray-400 border-t border-gray-200/50 pt-6">
-      <p>Powered by <a href="https://github.com" target="_blank" class="text-blue-500 hover:underline">GitHub</a> &nbsp;·&nbsp; Built with <i class="fas fa-heart text-red-400"></i></p>
+        <p>Powered by <a href="https://github.com" target="_blank" class="text-blue-500 hover:underline">GitHub</a> &nbsp;·&nbsp; Built with <i class="fas fa-heart text-red-400"></i></p>
     </footer>
-  </div>
+</div>
 
-  <script>
-    // ============================================================
-    //  CONFIGURATION – Edit these to match your repository
-    // ============================================================
+<script>
+    // ════════════════════════════════════════════════════════════════
+    //  CONFIG
+    // ════════════════════════════════════════════════════════════════
     const OWNER = 'zaineb44-ui';
     const REPO = 'ipoindex';
-    const BASE_PATH = 'Files';   // start inside the "Files" folder
+    const BASE_PATH = 'Files';
 
-    // ============================================================
-    //  STATE & DOM REFS
-    // ============================================================
+    // ── change this to your own password ──
+    const SECRET_PASSWORD = 'admin123';
+
+    // ════════════════════════════════════════════════════════════════
+    //  STATE
+    // ════════════════════════════════════════════════════════════════
     let currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
-    let allItems = [];  // store current directory items for filtering
+    let allItems = [];
+    let isUnlocked = false;
+
+    // DOM refs
+    const overlay = document.getElementById('password-overlay');
+    const passwordInput = document.getElementById('password-input');
+    const unlockBtn = document.getElementById('unlock-btn');
+    const errorEl = document.getElementById('password-error');
 
     const titleEl = document.getElementById('title');
     const breadcrumbsEl = document.getElementById('breadcrumbs');
@@ -141,216 +326,271 @@
     repoLink.href = `https://github.com/${OWNER}/${REPO}`;
     repoBadge.textContent = `${OWNER}/${REPO}`;
 
-    // ============================================================
-    //  FETCH FROM GITHUB API (unauthenticated)
-    // ============================================================
-    async function fetchContents(path) {
-      const cleanPath = path.replace(/^\/+|\/+$/g, '');
-      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${cleanPath}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
-      }
-      return await response.json();
-    }
-
-    // ============================================================
-    //  RENDER THE VIEW
-    // ============================================================
-    async function render(path, filterText = '') {
-      try {
-        const data = await fetchContents(path);
-
-        // ---- Single file ----
-        if (!Array.isArray(data)) {
-          titleEl.innerHTML = `
-            <i class="fas fa-file text-green-600 mr-2"></i>
-            <span>${data.name}</span>
-          `;
-          breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
-          contentEl.innerHTML = `
-            <div class="col-span-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/50">
-              <div class="text-7xl text-gray-300 mb-4">
-                <i class="fas fa-file-alt"></i>
-              </div>
-              <p class="text-gray-600 mb-2">Size: ${formatBytes(data.size)}</p>
-              <a href="${data.download_url}" target="_blank" 
-                 class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl transition shadow-lg hover:shadow-blue-200">
-                <i class="fas fa-download mr-2"></i> Download
-              </a>
-              <br />
-              <a href="#" onclick="goBack(); return false;" 
-                 class="inline-block mt-4 text-blue-600 hover:underline">
-                ← Back to parent folder
-              </a>
-            </div>
-          `;
-          return;
-        }
-
-        // ---- Directory listing ----
-        const pathParts = path.split('/').filter(Boolean);
-        const folderName = pathParts.length ? pathParts[pathParts.length - 1] : 'Root Directory';
-
-        titleEl.innerHTML = `
-          <i class="fas fa-folder-open text-blue-600 mr-2"></i>
-          <span>${folderName}</span>
-        `;
-
-        breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
-
-        // Store items for filtering
-        allItems = data;
-
-        // Build grid
-        renderItems(allItems, filterText);
-
-        // If no items and filter is empty, show empty state
-        if (allItems.length === 0 && !filterText) {
-          contentEl.innerHTML = `
-            <div class="col-span-full empty-state rounded-2xl shadow p-8 text-center text-gray-500">
-              <i class="fas fa-folder-open text-5xl mb-3 opacity-50"></i>
-              <p>This folder is empty.</p>
-            </div>
-          `;
-        }
-
-      } catch (err) {
-        contentEl.innerHTML = `
-          <div class="col-span-full bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-6 text-red-700 shadow-lg">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            <strong>Error:</strong> ${err.message}
-            <br /><span class="text-sm">Please check that the repository exists and is public.</span>
-          </div>
-        `;
-        console.error(err);
-      }
-    }
-
-    // Render items with optional filter
-    function renderItems(items, filterText) {
-      const filtered = filterText
-        ? items.filter(item => item.name.toLowerCase().includes(filterText.toLowerCase()))
-        : items;
-
-      if (filtered.length === 0) {
-        contentEl.innerHTML = `
-          <div class="col-span-full empty-state rounded-2xl shadow p-8 text-center text-gray-400">
-            <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
-            <p>No files match "<span class="font-medium text-gray-600">${filterText}</span>"</p>
-          </div>
-        `;
-        return;
-      }
-
-      let itemsHtml = '';
-      filtered.forEach(item => {
-        const isDir = item.type === 'dir';
-        const icon = isDir ? 'fa-folder text-blue-500' : 'fa-file text-green-600';
-        const name = item.name;
-        const link = isDir ? `/${item.path}` : item.download_url;
-        const target = isDir ? '' : ' target="_blank"';
-        const size = isDir ? '' : formatBytes(item.size);
-
-        itemsHtml += `
-          <div class="card rounded-xl p-4 shadow-sm transition">
-            <a href="${link}"${target} class="flex items-start space-x-3 text-gray-800 hover:text-blue-600">
-              <div class="file-icon">
-                <i class="fas ${icon}"></i>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="font-medium truncate" title="${name}">${name}</div>
-                ${!isDir ? `<div class="text-xs text-gray-400">${size}</div>` : ''}
-              </div>
-              ${!isDir ? `<i class="fas fa-chevron-right text-xs text-gray-300 mt-1.5"></i>` : ''}
-            </a>
-          </div>
-        `;
-      });
-
-      contentEl.innerHTML = itemsHtml;
-    }
-
-    // ============================================================
-    //  HELPER FUNCTIONS
-    // ============================================================
-    function buildBreadcrumbs(path) {
-      const parts = path.split('/').filter(Boolean);
-      let html = `<a href="/" class="hover:text-blue-600 transition"><i class="fas fa-home"></i> Home</a>`;
-      let cumulative = '';
-      parts.forEach((part, index) => {
-        cumulative += '/' + part;
-        const isLast = index === parts.length - 1;
-        if (isLast) {
-          html += ` / <span class="text-gray-800 font-medium">${part}</span>`;
+    // ════════════════════════════════════════════════════════════════
+    //  PASSWORD LOGIC
+    // ════════════════════════════════════════════════════════════════
+    function attemptUnlock() {
+        const entered = passwordInput.value.trim();
+        if (entered === SECRET_PASSWORD) {
+            isUnlocked = true;
+            overlay.classList.add('hidden');
+            errorEl.textContent = '';
+            passwordInput.value = '';
+            // Render the actual content now
+            render(currentPath);
         } else {
-          html += ` / <a href="${cumulative}" class="hover:text-blue-600 transition">${part}</a>`;
+            errorEl.textContent = '✕ Incorrect password. Try again.';
+            passwordInput.value = '';
+            passwordInput.focus();
+            // shake animation (simple)
+            const box = document.querySelector('.password-box');
+            box.style.animation = 'none';
+            requestAnimationFrame(() => {
+                box.style.animation = 'shake 0.4s ease';
+            });
         }
-      });
-      return html;
+    }
+
+    // ── shake keyframes (injected via style) ──
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-12px); }
+          40% { transform: translateX(12px); }
+          60% { transform: translateX(-6px); }
+          80% { transform: translateX(6px); }
+        }
+      `;
+    document.head.appendChild(styleSheet);
+
+    // ── event listeners ──
+    unlockBtn.addEventListener('click', attemptUnlock);
+    passwordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') attemptUnlock();
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    //  FETCH & RENDER (same as before, but now protected)
+    // ════════════════════════════════════════════════════════════════
+    async function fetchContents(path) {
+        const cleanPath = path.replace(/^\/+|\/+$/g, '');
+        const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${cleanPath}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP ${response.status}`);
+        }
+        return await response.json();
+    }
+
+    async function render(path, filterText = '') {
+        // If not unlocked, do nothing (overlay is shown)
+        if (!isUnlocked) return;
+
+        try {
+            const data = await fetchContents(path);
+
+            // ── single file ──
+            if (!Array.isArray(data)) {
+                titleEl.innerHTML = `
+                <i class="fas fa-file text-green-600 mr-2"></i>
+                <span>${data.name}</span>
+              `;
+                breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
+                contentEl.innerHTML = `
+                <div class="col-span-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/50">
+                  <div class="text-7xl text-gray-300 mb-4">
+                    <i class="fas fa-file-alt"></i>
+                  </div>
+                  <p class="text-gray-600 mb-2">Size: ${formatBytes(data.size)}</p>
+                  <a href="${data.download_url}" target="_blank"
+                     class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl transition shadow-lg hover:shadow-blue-200">
+                    <i class="fas fa-download mr-2"></i> Download
+                  </a>
+                  <br />
+                  <a href="#" onclick="goBack(); return false;"
+                     class="inline-block mt-4 text-blue-600 hover:underline">
+                    ← Back to parent folder
+                  </a>
+                </div>
+              `;
+                return;
+            }
+
+            // ── directory ──
+            const pathParts = path.split('/').filter(Boolean);
+            const folderName = pathParts.length ? pathParts[pathParts.length - 1] : 'Root Directory';
+
+            titleEl.innerHTML = `
+              <i class="fas fa-folder-open text-blue-600 mr-2"></i>
+              <span>${folderName}</span>
+            `;
+
+            breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
+            allItems = data;
+            renderItems(allItems, filterText);
+
+            if (allItems.length === 0 && !filterText) {
+                contentEl.innerHTML = `
+                <div class="col-span-full empty-state rounded-2xl shadow p-8 text-center text-gray-500">
+                  <i class="fas fa-folder-open text-5xl mb-3 opacity-50"></i>
+                  <p>This folder is empty.</p>
+                </div>
+              `;
+            }
+
+        } catch (err) {
+            contentEl.innerHTML = `
+              <div class="col-span-full bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-6 text-red-700 shadow-lg">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Error:</strong> ${err.message}
+                <br /><span class="text-sm">Please check that the repository exists and is public.</span>
+              </div>
+            `;
+            console.error(err);
+        }
+    }
+
+    function renderItems(items, filterText) {
+        const filtered = filterText ?
+            items.filter(item => item.name.toLowerCase().includes(filterText.toLowerCase())) :
+            items;
+
+        if (filtered.length === 0) {
+            contentEl.innerHTML = `
+              <div class="col-span-full empty-state rounded-2xl shadow p-8 text-center text-gray-400">
+                <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
+                <p>No files match "<span class="font-medium text-gray-600">${filterText}</span>"</p>
+              </div>
+            `;
+            return;
+        }
+
+        let itemsHtml = '';
+        filtered.forEach(item => {
+            const isDir = item.type === 'dir';
+            const icon = isDir ? 'fa-folder text-blue-500' : 'fa-file text-green-600';
+            const name = item.name;
+            const link = isDir ? `/${item.path}` : item.download_url;
+            const target = isDir ? '' : ' target="_blank"';
+            const size = isDir ? '' : formatBytes(item.size);
+
+            itemsHtml += `
+              <div class="card rounded-xl p-4 shadow-sm transition">
+                <a href="${link}"${target} class="flex items-start space-x-3 text-gray-800 hover:text-blue-600">
+                  <div class="file-icon">
+                    <i class="fas ${icon}"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium truncate" title="${name}">${name}</div>
+                    ${!isDir ? `<div class="text-xs text-gray-400">${size}</div>` : ''}
+                  </div>
+                  ${!isDir ? `<i class="fas fa-chevron-right text-xs text-gray-300 mt-1.5"></i>` : ''}
+                </a>
+              </div>
+            `;
+        });
+
+        contentEl.innerHTML = itemsHtml;
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════════════════════════════════════
+    function buildBreadcrumbs(path) {
+        const parts = path.split('/').filter(Boolean);
+        let html = `<a href="/" class="hover:text-blue-600 transition"><i class="fas fa-home"></i> Home</a>`;
+        let cumulative = '';
+        parts.forEach((part, index) => {
+            cumulative += '/' + part;
+            const isLast = index === parts.length - 1;
+            if (isLast) {
+                html += ` / <span class="text-gray-800 font-medium">${part}</span>`;
+            } else {
+                html += ` / <a href="${cumulative}" class="hover:text-blue-600 transition">${part}</a>`;
+            }
+        });
+        return html;
     }
 
     function formatBytes(bytes) {
-      if (bytes === 0) return '0 B';
-      const k = 1024;
-      const sizes = ['B', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
     function goBack() {
-      const parts = currentPath.split('/').filter(Boolean);
-      parts.pop();
-      const newPath = parts.join('/');
-      const url = '/' + newPath;
-      window.history.pushState(null, '', url);
-      currentPath = newPath || BASE_PATH;
-      searchInput.value = ''; // clear search
-      render(currentPath);
+        const parts = currentPath.split('/').filter(Boolean);
+        parts.pop();
+        const newPath = parts.join('/');
+        const url = '/' + newPath;
+        window.history.pushState(null, '', url);
+        currentPath = newPath || BASE_PATH;
+        searchInput.value = '';
+        render(currentPath);
     }
 
-    // ============================================================
-    //  SEARCH / FILTER
-    // ============================================================
+    // ════════════════════════════════════════════════════════════════
+    //  SEARCH
+    // ════════════════════════════════════════════════════════════════
     searchInput.addEventListener('input', (e) => {
-      const filter = e.target.value;
-      // If we are viewing a directory (allItems contains data)
-      if (allItems.length > 0) {
-        renderItems(allItems, filter);
-      } else {
-        // If we are viewing a single file, search does nothing (but we could re-fetch? Better to ignore)
-      }
+        const filter = e.target.value;
+        if (allItems.length > 0 && isUnlocked) {
+            renderItems(allItems, filter);
+        }
     });
 
-    // ============================================================
-    //  INTERCEPT CLICKS ON INTERNAL LINKS (SPA‑like navigation)
-    // ============================================================
+    // ════════════════════════════════════════════════════════════════
+    //  SPA NAVIGATION (only if unlocked)
+    // ════════════════════════════════════════════════════════════════
     document.addEventListener('click', (e) => {
-      const link = e.target.closest('a');
-      if (!link) return;
-      const href = link.getAttribute('href');
-      if (href && href.startsWith('/') && !href.startsWith('//')) {
-        e.preventDefault();
-        const newPath = href.slice(1);
-        window.history.pushState(null, '', href);
-        currentPath = newPath || BASE_PATH;
-        searchInput.value = ''; // clear search on navigation
-        render(currentPath);
-      }
+        if (!isUnlocked) return;
+        const link = e.target.closest('a');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('/') && !href.startsWith('//')) {
+            e.preventDefault();
+            const newPath = href.slice(1);
+            window.history.pushState(null, '', href);
+            currentPath = newPath || BASE_PATH;
+            searchInput.value = '';
+            render(currentPath);
+        }
     });
 
-    // Handle browser back/forward
     window.addEventListener('popstate', () => {
-      currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
-      searchInput.value = '';
-      render(currentPath);
+        if (!isUnlocked) return;
+        currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
+        searchInput.value = '';
+        render(currentPath);
     });
 
-    // ============================================================
-    //  INITIAL RENDER
-    // ============================================================
-    render(currentPath);
-  </script>
+    // ════════════════════════════════════════════════════════════════
+    //  INIT — show overlay first, render only after unlock
+    // ════════════════════════════════════════════════════════════════
+    // The overlay is visible by default (no "hidden" class)
+    // We do NOT render content until unlock.
+    // But we set a placeholder title so it's not empty.
+    titleEl.innerHTML = `
+      <i class="fas fa-lock text-gray-400 mr-2"></i>
+      <span class="text-gray-400">🔒 Locked</span>
+    `;
+    contentEl.innerHTML = `
+      <div class="col-span-full text-center text-gray-400 py-12">
+        <i class="fas fa-lock text-5xl opacity-30 mb-3"></i>
+        <p>Enter the password to view contents</p>
+      </div>
+    `;
+
+    // Focus the password input
+    passwordInput.focus();
+
+    // The render() function will be called from attemptUnlock() when successful.
+    // We also expose render globally so it can be called from console if needed.
+    window.render = render;
+</script>
 </body>
 </html>
