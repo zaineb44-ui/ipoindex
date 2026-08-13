@@ -4,115 +4,179 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IPO Index</title>
-  <!-- Tailwind CSS (CDN) for clean, responsive design -->
+  <!-- Favicon: folder emoji as SVG data URI -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📂</text></svg>" />
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome (optional, for icons) -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    /* Additional custom styles */
+    /* Custom styles */
     body {
-      background: #f9fafb;
+      background: linear-gradient(145deg, #f0f4ff 0%, #e6edf7 100%);
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass-header {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
+      background: white;
+      border-color: #60a5fa;
+    }
+    .card a {
+      transition: color 0.2s;
+    }
+    .breadcrumb-link {
+      transition: color 0.2s;
+    }
+    .breadcrumb-link:hover {
+      color: #2563eb;
+    }
+    #search-input {
+      transition: all 0.3s;
+    }
+    #search-input:focus {
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+      border-color: #3b82f6;
     }
     .file-icon {
       font-size: 1.5rem;
-      width: 2rem;
+      width: 2.2rem;
       text-align: center;
+      flex-shrink: 0;
     }
-    .card-hover:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    .empty-state {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(4px);
     }
-    .transition {
-      transition: all 0.2s ease;
+    /* Hide search results when no items match */
+    .hidden-item {
+      display: none !important;
     }
   </style>
 </head>
 <body>
-  <div id="app" class="max-w-6xl mx-auto px-4 py-8">
-    <!-- Header with repo info -->
-    <div class="flex items-center justify-between mb-6">
-      <h1 id="title" class="text-3xl font-bold text-gray-800 flex items-center gap-2">
-        <i class="fas fa-folder-open text-blue-600"></i>
-        <span>Loading...</span>
-      </h1>
-      <a id="repo-link" href="#" target="_blank" class="text-blue-600 hover:underline text-sm">
-        <i class="fab fa-github"></i> View on GitHub
-      </a>
-    </div>
+  <div id="app" class="max-w-7xl mx-auto px-4 py-6 md:py-10">
+
+    <!-- Header with glass effect -->
+    <header class="glass-header rounded-2xl p-5 md:p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 text-white p-3 rounded-xl shadow-lg shadow-blue-200">
+          <i class="fas fa-folder-open text-2xl"></i>
+        </div>
+        <div>
+          <h1 id="title" class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <span>Loading...</span>
+          </h1>
+          <p class="text-sm text-gray-500 mt-0.5">
+            <i class="fas fa-code-branch mr-1"></i> 
+            <span id="repo-badge" class="font-mono bg-gray-200 px-2 py-0.5 rounded text-xs">zaineb44-ui/ipoindex</span>
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Search input -->
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input id="search-input" type="text" placeholder="Search files..." 
+                 class="pl-9 pr-4 py-2 rounded-xl border border-gray-300 bg-white/80 focus:bg-white text-sm w-48 md:w-56 transition shadow-sm" />
+        </div>
+        <a id="repo-link" href="#" target="_blank" 
+           class="inline-flex items-center gap-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm px-4 py-2 rounded-xl transition shadow-md hover:shadow-lg">
+          <i class="fab fa-github"></i> View Repo
+        </a>
+      </div>
+    </header>
 
     <!-- Breadcrumbs -->
-    <nav id="breadcrumbs" class="text-sm text-gray-600 mb-6 bg-white p-3 rounded-lg shadow-sm">
-      <a href="/" class="hover:text-blue-600">Home</a>
+    <nav id="breadcrumbs" class="text-sm text-gray-600 mb-6 bg-white/70 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-white/50">
+      <a href="/" class="hover:text-blue-600 transition">Home</a>
     </nav>
 
-    <!-- File/ folder grid -->
+    <!-- File/folder grid -->
     <div id="content" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <!-- Items will be injected here -->
     </div>
+
+    <!-- Footer (optional) -->
+    <footer class="mt-12 text-center text-xs text-gray-400 border-t border-gray-200/50 pt-6">
+      <p>Powered by <a href="https://github.com" target="_blank" class="text-blue-500 hover:underline">GitHub</a> &nbsp;·&nbsp; Built with <i class="fas fa-heart text-red-400"></i></p>
+    </footer>
   </div>
 
   <script>
     // ============================================================
     //  CONFIGURATION – Edit these to match your repository
     // ============================================================
-    const OWNER = 'zaineb44-ui';          // GitHub username or org
-    const REPO = 'ipoindex';    // Repository name
-    const BASE_PATH = 'Files';                   // Optional subfolder, e.g., 'docs' or ''
+    const OWNER = 'zaineb44-ui';
+    const REPO = 'ipoindex';
+    const BASE_PATH = 'Files';   // start inside the "Files" folder
 
     // ============================================================
     //  STATE & DOM REFS
     // ============================================================
     let currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
+    let allItems = [];  // store current directory items for filtering
 
     const titleEl = document.getElementById('title');
     const breadcrumbsEl = document.getElementById('breadcrumbs');
     const contentEl = document.getElementById('content');
     const repoLink = document.getElementById('repo-link');
+    const repoBadge = document.getElementById('repo-badge');
+    const searchInput = document.getElementById('search-input');
 
-    // Set the "View on GitHub" link
     repoLink.href = `https://github.com/${OWNER}/${REPO}`;
+    repoBadge.textContent = `${OWNER}/${REPO}`;
 
     // ============================================================
     //  FETCH FROM GITHUB API (unauthenticated)
     // ============================================================
     async function fetchContents(path) {
-      // Remove leading/trailing slashes for a clean path
       const cleanPath = path.replace(/^\/+|\/+$/g, '');
       const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${cleanPath}`;
       const response = await fetch(url);
-
       if (!response.ok) {
-        // If the response is 404, the path might be a file that doesn't exist – we'll show an error.
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${response.status}`);
       }
-
-      const data = await response.json();
-      return data;
+      return await response.json();
     }
 
     // ============================================================
     //  RENDER THE VIEW
     // ============================================================
-    async function render(path) {
+    async function render(path, filterText = '') {
       try {
         const data = await fetchContents(path);
 
-        // ---- CASE 1: It's a single file ----
+        // ---- Single file ----
         if (!Array.isArray(data)) {
           titleEl.innerHTML = `
-            <i class="fas fa-file text-green-600"></i>
+            <i class="fas fa-file text-green-600 mr-2"></i>
             <span>${data.name}</span>
           `;
           breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
           contentEl.innerHTML = `
-            <div class="col-span-full bg-white rounded-lg shadow p-6 text-center">
-              <div class="text-6xl text-gray-300 mb-4">
+            <div class="col-span-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/50">
+              <div class="text-7xl text-gray-300 mb-4">
                 <i class="fas fa-file-alt"></i>
               </div>
               <p class="text-gray-600 mb-2">Size: ${formatBytes(data.size)}</p>
               <a href="${data.download_url}" target="_blank" 
-                 class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                 class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl transition shadow-lg hover:shadow-blue-200">
                 <i class="fas fa-download mr-2"></i> Download
               </a>
               <br />
@@ -125,60 +189,36 @@
           return;
         }
 
-        // ---- CASE 2: Directory listing ----
+        // ---- Directory listing ----
         const pathParts = path.split('/').filter(Boolean);
         const folderName = pathParts.length ? pathParts[pathParts.length - 1] : 'Root Directory';
 
         titleEl.innerHTML = `
-          <i class="fas fa-folder-open text-blue-600"></i>
+          <i class="fas fa-folder-open text-blue-600 mr-2"></i>
           <span>${folderName}</span>
         `;
 
         breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
 
-        // If the directory is empty, show a message
-        if (data.length === 0) {
+        // Store items for filtering
+        allItems = data;
+
+        // Build grid
+        renderItems(allItems, filterText);
+
+        // If no items and filter is empty, show empty state
+        if (allItems.length === 0 && !filterText) {
           contentEl.innerHTML = `
-            <div class="col-span-full bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              <i class="fas fa-folder-open text-4xl mb-2"></i>
+            <div class="col-span-full empty-state rounded-2xl shadow p-8 text-center text-gray-500">
+              <i class="fas fa-folder-open text-5xl mb-3 opacity-50"></i>
               <p>This folder is empty.</p>
             </div>
           `;
-          return;
         }
 
-        // Build the grid of items
-        let itemsHtml = '';
-        data.forEach(item => {
-          const isDir = item.type === 'dir';
-          const icon = isDir ? 'fa-folder text-blue-500' : 'fa-file text-green-600';
-          const name = item.name;
-          const link = isDir ? `/${item.path}` : item.download_url;
-          const target = isDir ? '' : ' target="_blank"';
-          const size = isDir ? '' : formatBytes(item.size);
-
-          itemsHtml += `
-            <div class="bg-white rounded-lg shadow-sm p-4 card-hover transition border border-gray-100">
-              <a href="${link}"${target} class="flex items-start space-x-3 text-gray-800 hover:text-blue-600">
-                <div class="file-icon">
-                  <i class="fas ${icon}"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-medium truncate" title="${name}">${name}</div>
-                  ${!isDir ? `<div class="text-xs text-gray-400">${size}</div>` : ''}
-                </div>
-                ${!isDir ? `<i class="fas fa-chevron-right text-xs text-gray-300 mt-1"></i>` : ''}
-              </a>
-            </div>
-          `;
-        });
-
-        contentEl.innerHTML = itemsHtml;
-
       } catch (err) {
-        // Show error message
         contentEl.innerHTML = `
-          <div class="col-span-full bg-red-50 border border-red-200 rounded-lg p-6 text-red-700">
+          <div class="col-span-full bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-6 text-red-700 shadow-lg">
             <i class="fas fa-exclamation-triangle mr-2"></i>
             <strong>Error:</strong> ${err.message}
             <br /><span class="text-sm">Please check that the repository exists and is public.</span>
@@ -188,12 +228,56 @@
       }
     }
 
+    // Render items with optional filter
+    function renderItems(items, filterText) {
+      const filtered = filterText
+        ? items.filter(item => item.name.toLowerCase().includes(filterText.toLowerCase()))
+        : items;
+
+      if (filtered.length === 0) {
+        contentEl.innerHTML = `
+          <div class="col-span-full empty-state rounded-2xl shadow p-8 text-center text-gray-400">
+            <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
+            <p>No files match "<span class="font-medium text-gray-600">${filterText}</span>"</p>
+          </div>
+        `;
+        return;
+      }
+
+      let itemsHtml = '';
+      filtered.forEach(item => {
+        const isDir = item.type === 'dir';
+        const icon = isDir ? 'fa-folder text-blue-500' : 'fa-file text-green-600';
+        const name = item.name;
+        const link = isDir ? `/${item.path}` : item.download_url;
+        const target = isDir ? '' : ' target="_blank"';
+        const size = isDir ? '' : formatBytes(item.size);
+
+        itemsHtml += `
+          <div class="card rounded-xl p-4 shadow-sm transition">
+            <a href="${link}"${target} class="flex items-start space-x-3 text-gray-800 hover:text-blue-600">
+              <div class="file-icon">
+                <i class="fas ${icon}"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium truncate" title="${name}">${name}</div>
+                ${!isDir ? `<div class="text-xs text-gray-400">${size}</div>` : ''}
+              </div>
+              ${!isDir ? `<i class="fas fa-chevron-right text-xs text-gray-300 mt-1.5"></i>` : ''}
+            </a>
+          </div>
+        `;
+      });
+
+      contentEl.innerHTML = itemsHtml;
+    }
+
     // ============================================================
     //  HELPER FUNCTIONS
     // ============================================================
     function buildBreadcrumbs(path) {
       const parts = path.split('/').filter(Boolean);
-      let html = `<a href="/" class="hover:text-blue-600"><i class="fas fa-home"></i> Home</a>`;
+      let html = `<a href="/" class="hover:text-blue-600 transition"><i class="fas fa-home"></i> Home</a>`;
       let cumulative = '';
       parts.forEach((part, index) => {
         cumulative += '/' + part;
@@ -201,7 +285,7 @@
         if (isLast) {
           html += ` / <span class="text-gray-800 font-medium">${part}</span>`;
         } else {
-          html += ` / <a href="${cumulative}" class="hover:text-blue-600">${part}</a>`;
+          html += ` / <a href="${cumulative}" class="hover:text-blue-600 transition">${part}</a>`;
         }
       });
       return html;
@@ -222,8 +306,22 @@
       const url = '/' + newPath;
       window.history.pushState(null, '', url);
       currentPath = newPath || BASE_PATH;
+      searchInput.value = ''; // clear search
       render(currentPath);
     }
+
+    // ============================================================
+    //  SEARCH / FILTER
+    // ============================================================
+    searchInput.addEventListener('input', (e) => {
+      const filter = e.target.value;
+      // If we are viewing a directory (allItems contains data)
+      if (allItems.length > 0) {
+        renderItems(allItems, filter);
+      } else {
+        // If we are viewing a single file, search does nothing (but we could re-fetch? Better to ignore)
+      }
+    });
 
     // ============================================================
     //  INTERCEPT CLICKS ON INTERNAL LINKS (SPA‑like navigation)
@@ -232,12 +330,12 @@
       const link = e.target.closest('a');
       if (!link) return;
       const href = link.getAttribute('href');
-      // Only intercept relative links that start with '/' (and are not external)
       if (href && href.startsWith('/') && !href.startsWith('//')) {
         e.preventDefault();
         const newPath = href.slice(1);
         window.history.pushState(null, '', href);
         currentPath = newPath || BASE_PATH;
+        searchInput.value = ''; // clear search on navigation
         render(currentPath);
       }
     });
@@ -245,6 +343,7 @@
     // Handle browser back/forward
     window.addEventListener('popstate', () => {
       currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
+      searchInput.value = '';
       render(currentPath);
     });
 
