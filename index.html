@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Index</title>
+  <!-- Tailwind CSS (CDN) for clean, responsive design -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome (optional, for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    /* Additional custom styles */
+    body {
+      background: #f9fafb;
+    }
+    .file-icon {
+      font-size: 1.5rem;
+      width: 2rem;
+      text-align: center;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    }
+    .transition {
+      transition: all 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header with repo info -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 id="title" class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+        <i class="fas fa-folder-open text-blue-600"></i>
+        <span>Loading...</span>
+      </h1>
+      <a id="repo-link" href="#" target="_blank" class="text-blue-600 hover:underline text-sm">
+        <i class="fab fa-github"></i> View on GitHub
+      </a>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <nav id="breadcrumbs" class="text-sm text-gray-600 mb-6 bg-white p-3 rounded-lg shadow-sm">
+      <a href="/" class="hover:text-blue-600">Home</a>
+    </nav>
+
+    <!-- File/ folder grid -->
+    <div id="content" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <!-- Items will be injected here -->
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  CONFIGURATION – Edit these to match your repository
+    // ============================================================
+    const OWNER = 'your_username';          // GitHub username or org
+    const REPO = 'your_repository_name';    // Repository name
+    const BASE_PATH = '';                   // Optional subfolder, e.g., 'docs' or ''
+
+    // ============================================================
+    //  STATE & DOM REFS
+    // ============================================================
+    let currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
+
+    const titleEl = document.getElementById('title');
+    const breadcrumbsEl = document.getElementById('breadcrumbs');
+    const contentEl = document.getElementById('content');
+    const repoLink = document.getElementById('repo-link');
+
+    // Set the "View on GitHub" link
+    repoLink.href = `https://github.com/${OWNER}/${REPO}`;
+
+    // ============================================================
+    //  FETCH FROM GITHUB API (unauthenticated)
+    // ============================================================
+    async function fetchContents(path) {
+      // Remove leading/trailing slashes for a clean path
+      const cleanPath = path.replace(/^\/+|\/+$/g, '');
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${cleanPath}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        // If the response is 404, the path might be a file that doesn't exist – we'll show an error.
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    }
+
+    // ============================================================
+    //  RENDER THE VIEW
+    // ============================================================
+    async function render(path) {
+      try {
+        const data = await fetchContents(path);
+
+        // ---- CASE 1: It's a single file ----
+        if (!Array.isArray(data)) {
+          titleEl.innerHTML = `
+            <i class="fas fa-file text-green-600"></i>
+            <span>${data.name}</span>
+          `;
+          breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
+          contentEl.innerHTML = `
+            <div class="col-span-full bg-white rounded-lg shadow p-6 text-center">
+              <div class="text-6xl text-gray-300 mb-4">
+                <i class="fas fa-file-alt"></i>
+              </div>
+              <p class="text-gray-600 mb-2">Size: ${formatBytes(data.size)}</p>
+              <a href="${data.download_url}" target="_blank" 
+                 class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-download mr-2"></i> Download
+              </a>
+              <br />
+              <a href="#" onclick="goBack(); return false;" 
+                 class="inline-block mt-4 text-blue-600 hover:underline">
+                ← Back to parent folder
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        // ---- CASE 2: Directory listing ----
+        const pathParts = path.split('/').filter(Boolean);
+        const folderName = pathParts.length ? pathParts[pathParts.length - 1] : 'Root Directory';
+
+        titleEl.innerHTML = `
+          <i class="fas fa-folder-open text-blue-600"></i>
+          <span>${folderName}</span>
+        `;
+
+        breadcrumbsEl.innerHTML = buildBreadcrumbs(path);
+
+        // If the directory is empty, show a message
+        if (data.length === 0) {
+          contentEl.innerHTML = `
+            <div class="col-span-full bg-white rounded-lg shadow p-8 text-center text-gray-500">
+              <i class="fas fa-folder-open text-4xl mb-2"></i>
+              <p>This folder is empty.</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Build the grid of items
+        let itemsHtml = '';
+        data.forEach(item => {
+          const isDir = item.type === 'dir';
+          const icon = isDir ? 'fa-folder text-blue-500' : 'fa-file text-green-600';
+          const name = item.name;
+          const link = isDir ? `/${item.path}` : item.download_url;
+          const target = isDir ? '' : ' target="_blank"';
+          const size = isDir ? '' : formatBytes(item.size);
+
+          itemsHtml += `
+            <div class="bg-white rounded-lg shadow-sm p-4 card-hover transition border border-gray-100">
+              <a href="${link}"${target} class="flex items-start space-x-3 text-gray-800 hover:text-blue-600">
+                <div class="file-icon">
+                  <i class="fas ${icon}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium truncate" title="${name}">${name}</div>
+                  ${!isDir ? `<div class="text-xs text-gray-400">${size}</div>` : ''}
+                </div>
+                ${!isDir ? `<i class="fas fa-chevron-right text-xs text-gray-300 mt-1"></i>` : ''}
+              </a>
+            </div>
+          `;
+        });
+
+        contentEl.innerHTML = itemsHtml;
+
+      } catch (err) {
+        // Show error message
+        contentEl.innerHTML = `
+          <div class="col-span-full bg-red-50 border border-red-200 rounded-lg p-6 text-red-700">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <strong>Error:</strong> ${err.message}
+            <br /><span class="text-sm">Please check that the repository exists and is public.</span>
+          </div>
+        `;
+        console.error(err);
+      }
+    }
+
+    // ============================================================
+    //  HELPER FUNCTIONS
+    // ============================================================
+    function buildBreadcrumbs(path) {
+      const parts = path.split('/').filter(Boolean);
+      let html = `<a href="/" class="hover:text-blue-600"><i class="fas fa-home"></i> Home</a>`;
+      let cumulative = '';
+      parts.forEach((part, index) => {
+        cumulative += '/' + part;
+        const isLast = index === parts.length - 1;
+        if (isLast) {
+          html += ` / <span class="text-gray-800 font-medium">${part}</span>`;
+        } else {
+          html += ` / <a href="${cumulative}" class="hover:text-blue-600">${part}</a>`;
+        }
+      });
+      return html;
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function goBack() {
+      const parts = currentPath.split('/').filter(Boolean);
+      parts.pop();
+      const newPath = parts.join('/');
+      const url = '/' + newPath;
+      window.history.pushState(null, '', url);
+      currentPath = newPath || BASE_PATH;
+      render(currentPath);
+    }
+
+    // ============================================================
+    //  INTERCEPT CLICKS ON INTERNAL LINKS (SPA‑like navigation)
+    // ============================================================
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (!link) return;
+      const href = link.getAttribute('href');
+      // Only intercept relative links that start with '/' (and are not external)
+      if (href && href.startsWith('/') && !href.startsWith('//')) {
+        e.preventDefault();
+        const newPath = href.slice(1);
+        window.history.pushState(null, '', href);
+        currentPath = newPath || BASE_PATH;
+        render(currentPath);
+      }
+    });
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', () => {
+      currentPath = decodeURIComponent(window.location.pathname).slice(1) || BASE_PATH;
+      render(currentPath);
+    });
+
+    // ============================================================
+    //  INITIAL RENDER
+    // ============================================================
+    render(currentPath);
+  </script>
+</body>
+</html>
